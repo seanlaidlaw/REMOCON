@@ -22,16 +22,22 @@ git clone https://github.com/jiwoongbio/REMOCON.git
 ```
 
 
-Usages
-------
+## Usages
 
 1. Prepare BWA index files
-```
-bwa index <genome.fasta>
-bwa index <genome.contaminant.fasta>
-```
+  ```
+  bwa index <genome.fasta>
+  bwa index <genome.contaminant.fasta>
+  ```
 
 2. Remove contaminant reads
-```
-./remocon.sh <output.prefix> <genome.fasta> <genome.contaminant.fasta> <threads> <input.1.fastq> [input.2.fastq]
-```
+  * Use **remocon.sh**
+  ```
+  ./remocon.sh <output.prefix> <genome.fasta> <genome.contaminant.fasta> <threads> <input.1.fastq> [input.2.fastq]
+  ```
+  * Use **remocon.pl**
+  ```
+  bwa mem <genome.fasta>             <input.1.fastq> [input.2.fastq] | gzip > output.sam.gz
+  bwa mem <genome.contaminant.fasta> <input.1.fastq> [input.2.fastq] | gzip > output.contaminant.sam.gz
+  perl remocon.pl output.sam.gz output.contaminant.sam.gz | gzip > output.contaminant_removed.sam.gz
+  ```
