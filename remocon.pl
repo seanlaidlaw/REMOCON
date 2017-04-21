@@ -13,7 +13,7 @@ GetOptions('h' => \(my $help = ''),
 if($help || scalar(@ARGV) == 0) {
 	die <<EOF;
 
-Usage:   perl remocon.pl target.sam contaminant.sam > target.contaminant_removed.sam
+Usage:   perl remocon.pl input.sam input.contaminant.sam > output.contaminant_removed.sam
 
 Options: -h       display this help message
          -n       input SAM files sorted lexicographically by read name
