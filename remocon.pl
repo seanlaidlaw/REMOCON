@@ -74,7 +74,9 @@ sub printLines {
 		push(@contaminantReadNameAlignmentScoreHashList, \%readNameAlignmentScoreHash);
 	}
 	my $alignmentScore = max(values %readNameAlignmentScoreHash);
-	my $contaminantAlignmentScore = max(map {values %$_} @contaminantReadNameAlignmentScoreHashList);
+	# get alignment score for contaminant, or if no matching read, set to 0
+	my $contaminantAlignmentScore = max(map {values %$_} @contaminantReadNameAlignmentScoreHashList) // 0;
+
 	if($contaminantAlignmentScore > $alignmentScore) {
 		$numberHash{'contaminant'} += 1;
 	} elsif($contaminantAlignmentScore == $alignmentScore) {
@@ -128,3 +130,4 @@ sub getTokenList {
 	}
 	return ();
 }
+
