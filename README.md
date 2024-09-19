@@ -2,53 +2,42 @@
 
 REMOve CONtaminant reads before variant calling
 
+This is a fork of [REMOCON](https://github.com/jiwoongbio/REMOCON.git).
 
-## Method
+I have modified the perl code from the original tool to produce output similar
+to that from [Xenome](https://github.com/data61/gossamer/blob/master/docs/xenome.md),
+so it will produce a separate sam file for each potential source of reads from:
+- human.sam
+- mouse.sam
+- ambiguous.sam
 
+For complete readme, see the original repo, but with my changes the workflow is
+as follows:
 
-## Requirements
+## Usage
 
-1. Perl - https://www.perl.org
-2. BWA - http://bio-bwa.sourceforge.net
-3. SAMtools 1.x - http://www.htslib.org
-4. Common linux commands: bash, gzip, ...
-
-
-## Install
-
-If you already have Git (https://git-scm.com) installed, you can get the latest development version using Git.
+1. Before use of REMOCON, align your sample's reads to both human and mouse reference genomes. You should also have a VCF of the SNPs present in the sample.
 ```
-git clone https://github.com/jiwoongbio/REMOCON.git
+# assuming you have these already present in directory
+sample.SNPs.vcf
+sample.humanaligned.sam
+sample.mousealigned.sam
 ```
 
+2. calculate an alignment score to measure the quality of the alignment of each read to its reference, in human and in mouse. This is the basis on which the read classification will take place
+```{bash}
+perl remocon_alignment_score.pl -b sample.humanaligned.sam sample.SNPs.vcf > sample.humanaligned.alignmentedscore.sam
+perl remocon_alignment_score.pl -b sample.mousealigned.sam sample.SNPs.vcf > sample.mousealigned.alignmentedscore.sam
+```
 
-## Usages
+3. Classify the reads into mouse, human, and ambiguous.
+```{bash}
+perl remocon.pl "sample.human.alignmentedscore.sam" "sample.mouse.alignmentedscore.sam"
+```
 
-1. Prepare BWA index files
-  ```
-  bwa index <genome.fasta>
-  bwa index <genome.contaminant.fasta>
-  ```
-
-2. Remove contaminant reads
-  * Use **remocon.sh**
-  ```
-  ./remocon.sh <output.prefix> <genome.fasta> <genome.contaminant.fasta> <threads> <input.1.fastq> [input.2.fastq]
-  ```
-  * Use **remocon.pl**
-  ```
-  # Align reads
-  bwa mem <genome.fasta>             <input.1.fastq> [input.2.fastq] | gzip > output.sam.gz
-  bwa mem <genome.contaminant.fasta> <input.1.fastq> [input.2.fastq] | gzip > output.contaminant.sam.gz
-
-  # (Optional) Recalculate alignment scores
-  perl remocon_alignment_score.pl output.sam.gz             | gzip > output.alignment_score_added.sam.gz             && mv output.alignment_score_added.sam.gz             output.sam.gz
-  perl remocon_alignment_score.pl output.contaminant.sam.gz | gzip > output.contaminant.alignment_score_added.sam.gz && mv output.contaminant.alignment_score_added.sam.gz output.contaminant.sam.gz
-
-  # Compare alignment scores and remove contaminant reads
-  perl remocon.pl output.sam.gz output.contaminant.sam.gz | gzip > output.contaminant_removed.sam.gz
-  ```
-  * Use **remocon.sort.sh** - take SAM files as input instead of FASTQ files
-  ```
-  ./remocon.sort.sh <output.prefix> <input.sam> <input.contaminant.sam>
-  ```
+This will produce 3 output files, each containing the reads assigned to that origin:
+```
+human.sam
+mouse.sam
+ambiguous.sam
+```
